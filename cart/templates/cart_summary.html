@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Book Shop</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}" />
+        <!-- Bootstrap icons-->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+    </head>
+    <body>
+        <!-- Navigation-->
+
+        <!-- Header-->
+        <header class="bg-dark py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="text-center text-white">
+                    <h1 class="display-4 fw-bolder">Shoping Cart</h1>
+                    <p class="lead fw-normal text-white-50 mb-0">View your cart</p>
+                </div>
+            </div>
+        </header>
+        <br/>
+        <div class="container"
+        {% if cart_products %}
+             {% for product in cart_products %}
+
+    <br/><br/><br/>
+             <div class="card mb-3" style="max-width: 540px;">
+  <div class="row g-0">
+    <div class="col-md-4">
+      <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="...">
+    </div>
+    <div class="col-md-8">
+      <div class="card-body">
+        <h5 class="card-title">{{ product.name }}</h5>
+        <p class="card-text">{{ product.description }}</p>
+
+        {% if product.is_sale %}
+         <h1> <strike>${{ product.price }} </strike> </h1>
+                                    <h1> ${{ product.sale_price}} </h1>
+        {% else %}
+          <h1> ${{ product.price }} </h1>
+
+        {% endif %}
+        <br/><br/>
+
+         <div class="col-md-3">Quantity:</div>
+            <br/>
+              <div class="col-md-3">
+              <select class="form-select" id="select{{product.id}}">
+
+
+             {% for key, value in quantities.items %}
+                {% if key == product.id|slugify %}
+                      <option selected>{{ value }}</option>
+                {% endif %}
+
+             {% endfor %}
+
+
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+              </select>
+              </div>
+          <br/><br/>
+          <a href="{% url 'home'%}" class="btn btn-secondary">Home</a>
+          <button type="button" data-index="{{product.id}}"
+           class="btn btn-secondary update-cart">Update</button>
+          <button type="button" data-index="{{product.id}}"
+           class="btn btn-danger delete-product">Remove</button>
+
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+             {% endfor %}
+             <h3>Total: ${{ totals }}</h3>
+
+             <br/><br/><br/>
+
+             {% else %}
+             There's nothing in your cart...
+        <br/><br/><br/><br/><br/><br/>
+             {% endif %}
+        </div>
+
+
+
+<script>
+    $(document).on('click', '.update-cart', function(e){
+    e.preventDefault();
+    var productid = $(this).data('index');
+    $.ajax({
+        type: 'POST',
+        url: '{% url 'cart_update' %}',
+        data: {
+            product_id: $(this).data('index'),
+            product_qty: $('#select' + productid + ' option:selected').text(),
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            action: 'post'
+        },
+
+        success: function(json){
+                location.reload();
+        },
+
+        error: function(xhr, errmsg, err){
+
+        }
+
+    });
+
+
+})
+
+
+    $(document).on('click', '.delete-product', function(e){
+    e.preventDefault();
+
+    $.ajax({
+        type: 'POST',
+        url: '{% url 'cart_delete' %}',
+        data: {
+            product_id: $(this).data('index'),
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            action: 'post'
+        },
+
+        success: function(json){
+                location.reload();
+        },
+
+        error: function(xhr, errmsg, err){
+
+        }
+
+    });
+
+
+})
+
+
+</script>
+{% endblock %}
